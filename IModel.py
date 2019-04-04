@@ -1,5 +1,6 @@
 import re
 from GetBound import getBound
+from IVec3 import Vec3
 
 class Model(object):
 
@@ -18,7 +19,6 @@ class Model(object):
         self.processFiles()
 
         print('Model %s loaded: %d faces, %d materials' % (name, len(self.faces), len(self.materials)))
-        print(self.materials[0])
 
     def processFiles(self):
         self.processMTLFile()
@@ -118,6 +118,50 @@ class Face(object):
         self.bound = getBound(self)
         self.normal = normal # 法线 [number, number, number]
         self.material = material  # Material
+    
+    def rayIntersectDetect(self, rayStart, rayDir):
+        v0 = Vec3(self.vertices[0][0], self.vertices[0][1], self.vertices[0][2])
+        v1 = Vec3(self.vertices[1][0], self.vertices[1][1], self.vertices[1][2])
+        v2 = Vec3(self.vertices[2][0], self.vertices[2][1], self.vertices[2][2])
+        # return flag, t, u, v
+        t = 0.0
+        u = 0.0
+        v = 0.0
+
+        e1 = v1.sub(v0)
+        e2 = v2.sub(v0)
+        p = rayDir.cross(e2)
+        det = e1.dot(p)
+
+        if det > 0:
+            T = rayStart.sub(v0)
+        else:
+            T = v0.sub(rayStart)
+            det = -det
+        
+        if det < 0.00000001:
+            return False, t, u, v
+        
+        u = T.dot(p)
+        if (u < 0.0 or u > det):
+            return False, t, u, v
+        
+        Q = T.cross(e1)
+
+        v = rayDir.dot(Q)
+        if (v < 0.0 or (u + v) > det):
+            return False, t, u, v
+        
+        t = e2.dot(Q)
+
+        fInvDet = 1.0000 / det
+        t *= fInvDet
+        u *= fInvDet
+        v *= fInvDet
+
+        return True, t, u, v
+
+        
 
     def print(self):
         print('-------------- Face --------------')

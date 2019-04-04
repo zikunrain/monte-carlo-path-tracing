@@ -33,10 +33,18 @@ widthPerPixel = xRange / rWidth
 heightPerPixel = yRange / rHeight
 
 for i in range(rWidth):
+    print(i, 512)
     x = screen['LT'].x - i * widthPerPixel
     for j in range(rHeight):
         y = screen['LT'].y - j * heightPerPixel
         z = screen['LT'].z - screen['dz'] * j * heightPerPixel
+        
+        pixelVec3 = Vec3(x, y, z)
+        rayDir = pixelVec3.sub(camera['p'])
+        candidateFaces = boundingBox.obtainCandidateFaces(camera['p'], rayDir)
+        for f in candidateFaces:
+            flag, t, u ,v = f.rayIntersectDetect(camera['p'], rayDir)
+
         # print(x,y,z)
 
 

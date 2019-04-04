@@ -32,6 +32,9 @@ class Vec3():
         c2 = vec3.z
         return Vec3(b1 * c2 - b2 * c1, a2 * c1 - a1 * c2, a1 * b2 - a2 * b1)
     
+    def dot(self, vec3):
+        return self.x * vec3.x + self.y * vec3.y + self.z * vec3.z 
+    
     def myPrint(self, name):
         print(name)
         print('x: ', self.x, ', y: ', self.y, ', z: ', self.z)
