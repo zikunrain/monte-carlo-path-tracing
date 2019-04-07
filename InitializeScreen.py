@@ -4,7 +4,7 @@ import math
 def initializeScreen(camera, near):
     lookDir = camera['l'].sub(camera['p'])
     d = lookDir.length()
-    sWidth = 2 * near * math.tan(25 * math.pi / 180)
+    sWidth = 2 * near * math.tan(30 * math.pi / 180)
     screenCenter = Vec3(
         0,
         camera['p'].y + (camera['l'].y - camera['p'].y) * near / d,

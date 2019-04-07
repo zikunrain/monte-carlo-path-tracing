@@ -4,7 +4,13 @@ from GetOutmostBound import getOutmostBound
 from InitializeScreen import initializeScreen
 import math
 from IVec3 import Vec3
+from PathTracer import pathTracer
+from PathTracer import getColor
+import cv2
+import numpy as np
+from IVec3 import Color
 
+canvas = np.zeros((512, 512, 3), dtype = 'uint8')
 rWidth = 512
 rHeight = 512
 camera = {
@@ -32,20 +38,28 @@ yRange = screen['LT'].y - screen['LB'].y
 widthPerPixel = xRange / rWidth
 heightPerPixel = yRange / rHeight
 
-for i in range(rWidth):
+for i in range(rWidth)[100:300]:
     print(i, 512)
     x = screen['LT'].x - i * widthPerPixel
-    for j in range(rHeight):
+    for j in range(rHeight)[100:300]:
         y = screen['LT'].y - j * heightPerPixel
         z = screen['LT'].z - screen['dz'] * j * heightPerPixel
-        
         pixelVec3 = Vec3(x, y, z)
-        rayDir = pixelVec3.sub(camera['p'])
-        candidateFaces = boundingBox.obtainCandidateFaces(camera['p'], rayDir)
-        for f in candidateFaces:
-            flag, t, u ,v = f.rayIntersectDetect(camera['p'], rayDir)
+        cameraP = camera['p']
+
+        colorSum = Color(0, 0, 0)
+        for k in range(4):
+            color = getColor(boundingBox, pixelVec3, cameraP)
+            colorSum = colorSum.add(color.absColor())
+        avgColor = colorSum.scale(1/4).gamma(1/2.2).dump()
+        canvas[i][j] = [int(avgColor.b*255), int(avgColor.g*255), int(avgColor.r*255)]
 
         # print(x,y,z)
+
+
+cv2.imshow("Canvas",canvas)
+cv2.waitKey(0)
+
 
 
 

@@ -7,7 +7,7 @@ class Model(object):
     patterns = {
         'get_value': re.compile(r'\w+ (.+)\n'),
         'get_list': re.compile(r'\w+ ([0-9\.-]+) ([0-9\.-]+) ([0-9\.-]+)\n'),
-        'get_vertice_info': re.compile(r'(\d+)/\d+/(\d+)')
+        'get_vertice_info': re.compile(r'(\d+)/\d*/(\d+)')
     }
         
     
@@ -103,6 +103,7 @@ class Model(object):
                         faces.append(face)
 
         self.faces = faces
+        faces[len(faces) - 1].print()
         f.close()
 
     def getMTLIdByName(self, name):
@@ -140,17 +141,17 @@ class Face(object):
             det = -det
         
         if det < 0.00000001:
-            return False, t, u, v
+            return False, t, None
         
         u = T.dot(p)
         if (u < 0.0 or u > det):
-            return False, t, u, v
+            return False, t, None
         
         Q = T.cross(e1)
 
         v = rayDir.dot(Q)
         if (v < 0.0 or (u + v) > det):
-            return False, t, u, v
+            return False, t, None
         
         t = e2.dot(Q)
 
@@ -158,8 +159,11 @@ class Face(object):
         t *= fInvDet
         u *= fInvDet
         v *= fInvDet
+        if u + v >= 1:
+            print('error')
+        intersectedPoint = v0.multiple(1 - u - v).add(v1.multiple(u)).add(v2.multiple(v))
 
-        return True, t, u, v
+        return True, t, intersectedPoint
 
         
 

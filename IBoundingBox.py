@@ -52,6 +52,7 @@ class BoundingBox():
                 ood = 1.0 / d[i]
                 t1 = (mins[i] - sp[i]) * ood
                 t2 = (maxs[i] - sp[i]) * ood
+                
                 if t1 > t2:
                     tmp = t1
                     t1 = t2
@@ -60,7 +61,7 @@ class BoundingBox():
                     tmin = t1
                 if t2 < tmax:
                     tmax = t2
-                
+
                 if tmin > tmax:
                     return False
 
