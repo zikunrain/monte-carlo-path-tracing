@@ -12,17 +12,17 @@ def initializeScreen(camera, near):
     )
     screenPlaneVector = lookDir.perpend(0)
     alpha = sWidth / 2 / screenPlaneVector.length()
-    screenPlaneVector.myPrint('screenPlaneVector')
+    # screenPlaneVector.myPrint('screenPlaneVector')
 
     screenLeftTop = screenCenter.add(Vec3(sWidth / 2, alpha * screenPlaneVector.y, alpha * screenPlaneVector.z))
     screenLeftBottom = screenCenter.add(Vec3(sWidth / 2, -alpha * screenPlaneVector.y, -alpha * screenPlaneVector.z))
     screenRightTop = screenCenter.add(Vec3(-sWidth / 2, alpha * screenPlaneVector.y, alpha * screenPlaneVector.z))
     screenRightBottom = screenCenter.add(Vec3(-sWidth / 2, -alpha * screenPlaneVector.y, -alpha * screenPlaneVector.z))
 
-    screenLeftTop.myPrint('screenLeftTop')
-    screenLeftBottom.myPrint('screenLeftBottom')
-    screenRightTop.myPrint('screenRightTop')
-    screenRightBottom.myPrint('screenRightBottom')
+    # screenLeftTop.myPrint('screenLeftTop')
+    # screenLeftBottom.myPrint('screenLeftBottom')
+    # screenRightTop.myPrint('screenRightTop')
+    # screenRightBottom.myPrint('screenRightBottom')
 
     return {
         'LT': screenLeftTop,

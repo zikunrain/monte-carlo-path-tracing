@@ -9,6 +9,7 @@ from PathTracer import getColor
 import cv2
 import numpy as np
 from IVec3 import Color
+import sys
 
 canvas = np.zeros((512, 512, 3), dtype = 'uint8')
 rWidth = 512
@@ -38,26 +39,34 @@ yRange = screen['LT'].y - screen['LB'].y
 widthPerPixel = xRange / rWidth
 heightPerPixel = yRange / rHeight
 
-for i in range(rWidth)[100:300]:
+maxDepth = 4
+sample = 4
+if len(sys.argv) > 1:
+    sample = int(sys.argv[1])
+if len(sys.argv) > 2:
+    maxDepth = int(sys.argv[2])
+
+
+for i in range(rWidth):
     print(i, 512)
     x = screen['LT'].x - i * widthPerPixel
-    for j in range(rHeight)[100:300]:
+    for j in range(rHeight):
         y = screen['LT'].y - j * heightPerPixel
         z = screen['LT'].z - screen['dz'] * j * heightPerPixel
         pixelVec3 = Vec3(x, y, z)
         cameraP = camera['p']
 
         colorSum = Color(0, 0, 0)
-        for k in range(4):
-            color = getColor(boundingBox, pixelVec3, cameraP)
+        for k in range(sample):
+            color = getColor(boundingBox, pixelVec3, cameraP, maxDepth)
             colorSum = colorSum.add(color.absColor())
-        avgColor = colorSum.scale(1/4).gamma(1/2.2).dump()
-        canvas[i][j] = [int(avgColor.b*255), int(avgColor.g*255), int(avgColor.r*255)]
+        avgColor = colorSum.scale(1/sample).gamma(1/2.2).dump()
+        canvas[j][i] = [int(avgColor.b*255), int(avgColor.g*255), int(avgColor.r*255)]
 
-        # print(x,y,z)
+# print(sample, maxDepth)
 
-
-cv2.imshow("Canvas",canvas)
+cv2.imshow("Canvas", canvas)
+cv2.imwrite( "result.jpg", canvas)
 cv2.waitKey(0)
 
 

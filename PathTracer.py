@@ -96,10 +96,10 @@ def getOutDir(face, intersectedPoint):
     return outDir
 
 
-def getColor(boundingBox, pixelVec3, cameraP):
+def getColor(boundingBox, pixelVec3, cameraP, maxDepth):
     rayDir = pixelVec3.sub(cameraP)
     weight = 1
-    depth = 1
+    depth = 0
     lightLocation = {
         'center': Vec3(-2.758771896, 1.5246, 0),
         'lefttop': Vec3(-2.758771896, 2.0246, 0.5),
@@ -107,15 +107,15 @@ def getColor(boundingBox, pixelVec3, cameraP):
         'leftbottom': Vec3(-2.758771896, 1.0246, 0.5),
         'rightbottom': Vec3(-2.758771896, 1.0246, -0.5)
     }
-    color, _, _ = pathTracer(boundingBox, cameraP, rayDir, weight, depth, lightLocation)
+    color, _, _ = pathTracer(boundingBox, cameraP, rayDir, weight, depth, lightLocation, maxDepth)
     return color
 
 
-def pathTracer(boundingBox, sp, rayDir, weight, depth, lightLocation):
+def pathTracer(boundingBox, sp, rayDir, weight, depth, lightLocation, maxDepth):
     depth += 1
 
     # 如果递归深度大于20 返回
-    if depth > 10:
+    if depth > maxDepth:
         return Color(0, 0, 0), Vec3(0, 0, 0), 1
     
     # 找到第一个相交的面片
@@ -182,32 +182,39 @@ def pathTracer(boundingBox, sp, rayDir, weight, depth, lightLocation):
         #         tmin = t
         #         intersectedFaceOfLight = f
 
+        con_theta_s_direct = 0
+        ksVec3_direct = Vec3(0, 0, 0)
         if intersectedFaceOfLight and intersectedFaceOfLight.material.name == 'initialShadingGroup': # 如果与光源直接相交
             distanceToLight = rayToLightCenter.length()
             lightNorm = Vec3(intersectedFaceOfLight.normal[0], intersectedFaceOfLight.normal[1], intersectedFaceOfLight.normal[2]).normalize()
-            RVec = rotateVecAAroundVecB(rayToLightCenter, normVec3)
+            # RVec = rotateVecAAroundVecB(rayToLightCenter, normVec3)
             # cos_theta_s = RVec.normalize().dot(rayToLight.multiple(-1).normalize())
             cos_theta_light_1 = normVec3.dot(rayToLightCenter.normalize())
             cos_theta_light_2 = rayToLightCenter.normalize().dot(lightNorm.multiple(-1))
-            light = Color(40, 40, 40).dotMul(kdVec3).scale(cos_theta_light_1 * cos_theta_light_2 / (distanceToLight * distanceToLight))
+            if ns:
+                con_theta_s_direct = rotateVecAAroundVecB(rayToLightCenter, normVec3).normalize().multiple(-1).dot(rayDir.normalize())
+                con_theta_s_direct = pow(con_theta_s_direct, ns)
+                ksVec3_direct = ksVec3.multiple(con_theta_s_direct)
+
+            light = Color(40, 40, 40).dotMul(kdVec3.multiple(cos_theta_light_1).add(ksVec3_direct)).scale(cos_theta_light_1 * cos_theta_light_2 / (distanceToLight * distanceToLight))
+
+
 
         # 获取出射光线
         outDir = getOutDir(intersectedFace, intersectedPoint)
 
         # 递归光线追踪
-        diffused, nextNorm, nextR = pathTracer(boundingBox, intersectedPoint, outDir, weight, depth, lightLocation)
-        # diffused = Color(1,1,1)
+        indirect, nextNorm, nextR = pathTracer(boundingBox, intersectedPoint, outDir, weight, depth, lightLocation, maxDepth)
+        
+        cos_theta_s_indirect = 0
+        if ns: # 如果有高光
+            cos_theta_s_indirect = rotateVecAAroundVecB(outDir, normVec3).normalize().multiple(-1).dot(rayDir.normalize())
+            cos_theta_s_indirect = pow(cos_theta_s_indirect, ns)
+        ksVec3_indirect = ksVec3.multiple(cos_theta_s_indirect)
 
+        cos_indirect = normVec3.dot(outDir.normalize())
 
-        # cos_theta_d_1 = normVec3.dot(outDir.normalize())
-        # cos_theta_d_2 = outDir.dot(nextNorm.multiple(-1))
-        # if (cos_theta_d_1 < 0):
-        #     print('cos_theta_d_1', cos_theta_d_1)
-        # if (cos_theta_d_2 < 0):
-        #     print('cos_theta_d_2', cos_theta_d_2)
-        # diffused.colorPrint('diffused')
-
-        return diffused.dotMul(kdVec3).scale(1/math.pi).add(light), normVec3, r
+        return indirect.dotMul(kdVec3.multiple(cos_indirect).add(ksVec3_indirect)).add(light), normVec3, r
 
     else:
         return Color(0, 0, 0), Vec3(0, 0, 0), 1
